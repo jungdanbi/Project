@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.exam.mapper.AdminMapper">
+  
+  	<select id="adminMemberList" resultType="memberVO">
+		SELECT member_id, password, name, gender, email, reg_date
+		FROM member
+	</select>
+	
+  	<select id="adminMemberIdSearch" resultType="memberVO">
+		SELECT member_id, password, name, gender, email, reg_date, book_overdue
+		FROM member
+		<where>
+			<if test="memberId != null and memberId != ''">
+				<!-- subject LIKE '%' || #{search} || '%' --> 
+				member_id LIKE CONCAT ('%', #{memberId}, '%')
+			</if>
+		</where>
+		ORDER BY member_id ASC
+	</select>
+	
+	<resultMap type="bookReservationVO" id="selectbookReservationAndTimeMap">
+		<id column= "book_code" property = "bookCode"/>
+		<result column = "member_id" property = "memberId"/>
+		<result column = "book_extension" property = "bookExtension"/>
+		<result column = "book_status" property = "bookStatus"/>
+		<collection property="resTimeVO" ofType="resTimeVO">
+			<result column = "book_code" property = "timeCode"/>
+			<result column = "start_time" property = "startTime"/>
+			<result column = "end_time" property = "endTime"/>
+		</collection>
+	</resultMap>
+	
+	  	<select id="selectbookReservationAndTime" resultMap="selectbookReservationAndTimeMap">
+		SELECT substring_index(br.book_code, 'book',-1) as book_code, br.member_id, br.book_extension, br.book_status, rt.start_time, rt.end_time
+		FROM book_reservation br LEFT JOIN res_time rt
+		ON br.book_code = rt.time_code
+		
+		
+		WHERE br.book_code = #{bookCode}
+	</select>
+	
+	
+  </mapper>
+
